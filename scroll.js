@@ -10,12 +10,9 @@ function updateRegion() {
   region = {0: -1, 1: 1, [-1]: 0}[rawRegion]
 }
 
-updateRegion()
-
 function scrollOrNavigate(step) {
   const now = performance.now()
   const delta = now - lastScrolled
-  console.log('scrollOrNavigate called: ', now, delta)
   lastScrolled = now
 
   // We wait for scrollCooldown to elapse before a scroll
@@ -49,6 +46,8 @@ function scrollOrNavigate(step) {
   }
 }
 
+function applyRules(rules) {}
+
 addEventListener('scroll', updateRegion, {passive: true})
 
 addEventListener('keydown', e => {
@@ -60,3 +59,11 @@ addEventListener('keydown', e => {
     scrollOrNavigate(1)
   }
 })
+
+updateRegion()
+
+const port = chrome.runtime.connect(
+  null,
+  {name: '' + Math.random()},
+)
+port.onMessage.addListener(applyRules)
