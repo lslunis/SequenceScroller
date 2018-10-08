@@ -1,36 +1,62 @@
 'use strict'
 
-let last = {t: 0, y: 0}
+let region
+let lastScrolled = -Infinity
 
-function nav(step) {
-    let html = document.documentElement
-    let bound = (html.scrollHeight - html.clientHeight) / 2 * (1 + step)
-    if ((performance.now() - last.t) < 300 || step * last.y < bound) return
-
-    let dir = step < 0 ? 'prev' : 'next'
-    let link = document.querySelector(`[rel=${dir}]`)
-    if (link) location = link.href
-    else {
-        let m = location.pathname.match(/(.*\/)(\d{1,4})([./].*|$)/)
-        if (m) {
-            let i = +m[2] + step
-            if (0 <= i && i < 1e4) location = m[1] + i + m[3]
-        }
-    }
+function updateRegion() {
+  const html = document.documentElement
+  const bottom = html.scrollHeight - html.clientHeight
+  const rawRegion = [0, bottom].findIndex(y => Math.abs(y - pageYOffset) < 1)
+  region = {0: -1, 1: 1, [-1]: 0}[rawRegion]
 }
 
-addEventListener('scroll', e => {
-    let y = pageYOffset
-    if (y != last.y) last = {t: e.timeStamp, y}
-})
+updateRegion()
+
+function scrollOrNavigate(step) {
+  const now = performance.now()
+  const delta = now - lastScrolled
+  console.log('scrollOrNavigate called: ', now, delta)
+  lastScrolled = now
+
+  // We wait for scrollCooldown to elapse before a scroll
+  // is allowed to be interpreted as a navigation
+  const scrollCooldown = 300
+  if (region != step || delta < scrollCooldown) {
+    return
+  }
+
+  let $ = (selectorTemplate, prev, next) =>
+    document.querySelector(
+      selectorTemplate.replace(/DIR/, step < 0 ? prev : next),
+    )
+  let link =
+    $('[rel=DIR]', 'prev', 'next') ||
+    $('.bottom_nav p:DIR-of-type a', 'first', 'last') ||
+    $('.b-pager-DIR', 'prev', 'next')
+  if (link) {
+    console.log('link')
+    location = link.href
+  } else {
+    console.log('no link')
+    let m = location.pathname.match(/(.*\/)(\d{1,4})([./].*|$)/)
+    if (m) {
+      let i = +m[2] + step
+      if (0 <= i && i < 1e4) {
+        console.log(m[1] + i + m[3])
+        location = m[1] + i + m[3]
+      }
+    }
+  }
+}
+
+addEventListener('scroll', updateRegion, {passive: true})
 
 addEventListener('keydown', e => {
-    let k = e.which
-    if (k == 32 && e.shiftKey || k == 33) nav(-1)
-    else if (k == 32 || k == 34) nav(1)
-})
-
-addEventListener('wheel', e => {
-    let y = e.deltaY
-    if (y) nav(y / Math.abs(y))
+  const key = e.which
+  const [pageUp = 33, pageDown = 34] = []
+  if (key == pageUp) {
+    scrollOrNavigate(-1)
+  } else if (key == pageDown) {
+    scrollOrNavigate(1)
+  }
 })
