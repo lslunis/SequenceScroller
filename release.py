@@ -63,13 +63,13 @@ sh("git merge-base --is-ancestor origin/master master")
 if dereference("master") != dereference("origin/master"):
     sh("git push --follow-tags", v=True)
 
-files = ["manifest.json", "config.js"]
+files = ["manifest.json"]
 for file in sh("git ls-files").splitlines():
     m = lambda p: re.search(p, file)
     if m(r"\.(html|js)$") and not m(r"\btest\b"):
         files.append(file)
 
-with ZipFile("ergometer.zip", "w") as zip:
+with ZipFile("scroller.zip", "w") as zip:
     for file in files:
         print(f"zipping {file}")
         zip.write(file)
