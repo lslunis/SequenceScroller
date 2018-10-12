@@ -3,13 +3,13 @@
   "name": "Sequence Scroller",
   "version": "0",
   "background": {
-    "page": "extension.html",
+    "page": "background.html",
     "persistent": false
   },
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*"],
-      "js": ["scroll.js"]
+      "js": ["content.js"]
     }
   ],
   "permissions": ["storage"]
