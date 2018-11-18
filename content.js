@@ -8,7 +8,9 @@ let pageUrls = {}
 function updateRegion() {
   let html = document.documentElement
   let top = 0
-  let bottom = html.scrollHeight - html.clientHeight
+  let {clientHeight} =
+    document.compatMode == 'CSS1Compat' ? html : document.body
+  let bottom = html.scrollHeight - clientHeight
   // Instead of comparing exactly, we check < 1 to accomodate subpixel scrolling
   let region = [top, bottom].find(y => Math.abs(y - pageYOffset) < 1)
   regionDirection = {[top]: backward, [bottom]: forward}[region]
