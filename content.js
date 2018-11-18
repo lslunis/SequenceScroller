@@ -35,9 +35,9 @@ function scrollOrNavigate(direction) {
 function parsePathRule(pathRule) {
   let valid = true
   let padding
-  pathRule = pathRule.replace(/#/g, s => {
+  pathRule = pathRule.replace(/#+/g, s => {
     if (padding) {
-      console.log(`ignoring rule with multiple page placeholders: ${rule}`)
+      console.log(`ignoring rule with multiple page placeholders: ${pathRule}`)
       valid = false
     }
     padding = s.length
