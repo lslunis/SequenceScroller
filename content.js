@@ -1,7 +1,7 @@
 'use strict'
 
 let [backward = -1, forward = 1] = []
-let regionDirection
+let allowedDirections = new Set()
 let lastScrolled = -Infinity
 let pageUrls = {}
 
@@ -12,8 +12,11 @@ function updateRegion() {
     document.compatMode == 'CSS1Compat' ? html : document.body
   let bottom = html.scrollHeight - clientHeight
   // Instead of comparing exactly, we check < 1 to accomodate subpixel scrolling
-  let region = [top, bottom].find(y => Math.abs(y - pageYOffset) < 1)
-  regionDirection = {[top]: backward, [bottom]: forward}[region]
+  allowedDirections = new Set(
+    [[top, backward], [bottom, forward]]
+      .filter(([y]) => Math.abs(y - pageYOffset) < 1)
+      .map(([_, d]) => d),
+  )
 }
 
 function scrollOrNavigate(direction) {
@@ -24,7 +27,7 @@ function scrollOrNavigate(direction) {
   // We wait for scrollCooldown to elapse before a scroll
   // is allowed to be interpreted as a navigation
   let scrollCooldown = 300
-  if (regionDirection != direction || delta < scrollCooldown) {
+  if (!allowedDirections.has(direction) || delta < scrollCooldown) {
     return
   }
 
