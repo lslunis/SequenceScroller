@@ -28,6 +28,7 @@ async function listRules() {
 }
 
 async function addRule(rule) {
+  rule = rule.replace(/^(?:https?:\/\/)?(?:www\d*\.)?/, '')
   const rules = await getRules()
   if (rules.includes(rule)) {
     console.log('rule already exists')
