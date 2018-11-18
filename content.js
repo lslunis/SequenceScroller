@@ -1,32 +1,32 @@
 'use strict'
 
-const [backward = -1, forward = 1] = []
+let [backward = -1, forward = 1] = []
 let regionDirection
 let lastScrolled = -Infinity
-const pageUrls = {}
+let pageUrls = {}
 
 function updateRegion() {
-  const html = document.documentElement
-  const top = 0
-  const bottom = html.scrollHeight - html.clientHeight
+  let html = document.documentElement
+  let top = 0
+  let bottom = html.scrollHeight - html.clientHeight
   // Instead of comparing exactly, we check < 1 to accomodate subpixel scrolling
-  const region = [top, bottom].find(y => Math.abs(y - pageYOffset) < 1)
+  let region = [top, bottom].find(y => Math.abs(y - pageYOffset) < 1)
   regionDirection = {[top]: backward, [bottom]: forward}[region]
 }
 
 function scrollOrNavigate(direction) {
-  const now = performance.now()
-  const delta = now - lastScrolled
+  let now = performance.now()
+  let delta = now - lastScrolled
   lastScrolled = now
 
   // We wait for scrollCooldown to elapse before a scroll
   // is allowed to be interpreted as a navigation
-  const scrollCooldown = 300
+  let scrollCooldown = 300
   if (regionDirection != direction || delta < scrollCooldown) {
     return
   }
 
-  const url = pageUrls[direction]
+  let url = pageUrls[direction]
   if (url) {
     location = url
   }
@@ -48,7 +48,7 @@ function parsePathRule(pathRule) {
   }
 
   let pattern
-  const i = pathRule.indexOf('?')
+  let i = pathRule.indexOf('?')
   if (i >= 0) {
     pattern = `(^${pathRule}[^?]*\\?(?:.*&)?${queryRule}(?:&.*)?$)`
   } else {
@@ -58,16 +58,16 @@ function parsePathRule(pathRule) {
 }
 
 function applyRules(rules) {
-  const prevUrls = new Set()
-  const nextUrls = new Set()
+  let prevUrls = new Set()
+  let nextUrls = new Set()
 
-  const interpreters = [
+  let interpreters = [
     [
       /(.*)\{([^,]+),([^}]+)\}(.*)/,
       ([prefix, prev, next, suffix]) => {
-        const addUrls = (urls, infix) => {
-          const nodes = document.querySelectorAll(prefix + infix + suffix)
-          for (const node of nodes) {
+        let addUrls = (urls, infix) => {
+          let nodes = document.querySelectorAll(prefix + infix + suffix)
+          for (let node of nodes) {
             urls.add(node.href)
           }
         }
@@ -78,24 +78,24 @@ function applyRules(rules) {
     [
       /^([^/]+)(\/[^?]+)/,
       ([expectedAuthority, pathRule]) => {
-        const {host, pathname, search} = location
-        const path = pathname + search
-        const i = host.length - expectedAuthority.length
-        const subdomain = host.slice(0, i)
-        const authorityMatched =
+        let {host, pathname, search} = location
+        let path = pathname + search
+        let i = host.length - expectedAuthority.length
+        let subdomain = host.slice(0, i)
+        let authorityMatched =
           (!subdomain || subdomain.endsWith('.')) &&
           host.slice(i) == expectedAuthority
         if (!authorityMatched) {
           return
         }
 
-        const {pattern, padding} = parsePathRule(pathRule)
+        let {pattern, padding} = parsePathRule(pathRule)
         if (!pattern) {
           return
         }
         path.replace(pattern, (_, prefix, page, suffix) => {
-          const maybeAddUrl = (urls, offset) => {
-            const newPage = +page + offset
+          let maybeAddUrl = (urls, offset) => {
+            let newPage = +page + offset
             if (newPage >= 0) {
               urls.add(prefix + ('' + newPage).padStart(padding, 0) + suffix)
             }
@@ -107,9 +107,9 @@ function applyRules(rules) {
     ],
   ]
 
-  for (const rule of rules) {
-    for (const [pattern, applyRule] of interpreters) {
-      const match = rule.match(pattern)
+  for (let rule of rules) {
+    for (let [pattern, applyRule] of interpreters) {
+      let match = rule.match(pattern)
       if (match) {
         applyRule(match.slice(1))
         break
@@ -117,7 +117,7 @@ function applyRules(rules) {
     }
   }
 
-  const getUrl = (name, urls) => {
+  let getUrl = (name, urls) => {
     urls = [...urls]
     console.log(`${name}: ${JSON.stringify(urls)}`)
     return urls.length ? urls[0] : null
@@ -129,8 +129,8 @@ function applyRules(rules) {
 addEventListener('scroll', updateRegion, {passive: true})
 
 addEventListener('keydown', e => {
-  const key = e.which
-  const [pageUp = 33, pageDown = 34] = []
+  let key = e.which
+  let [pageUp = 33, pageDown = 34] = []
   if (key == pageUp) {
     scrollOrNavigate(backward)
   } else if (key == pageDown) {
@@ -140,7 +140,7 @@ addEventListener('keydown', e => {
 
 updateRegion()
 
-const port = chrome.runtime.connect(
+let port = chrome.runtime.connect(
   null,
   {name: '' + Math.random()},
 )

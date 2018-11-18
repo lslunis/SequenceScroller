@@ -1,9 +1,9 @@
 async function getRules() {
-  const {rules} = await browser.storage.sync.get({rules: []})
+  let {rules} = await browser.storage.sync.get({rules: []})
   return rules
 }
 
-const ports = new Map()
+let ports = new Map()
 browser.runtime.onConnect.addListener(async port => {
   ports.set(port.name, port)
   port.onDisconnect.addListener(() => ports.delete(port.name))
@@ -16,20 +16,20 @@ browser.storage.onChanged.addListener(({rules}, area) => {
     return
   }
 
-  for (const port of ports.values()) {
+  for (let port of ports.values()) {
     port.postMessage(rules.newValue)
   }
 })
 
 async function listRules() {
-  const rules = await getRules()
+  let rules = await getRules()
   console.log('rules:')
   console.log(rules.map(r => JSON.stringify(r)).join('\n'))
 }
 
 async function addRule(rule) {
   rule = rule.replace(/^(?:https?:\/\/)?(?:www\d*\.)?/, '')
-  const rules = await getRules()
+  let rules = await getRules()
   if (rules.includes(rule)) {
     console.log('rule already exists')
   } else {
@@ -40,8 +40,8 @@ async function addRule(rule) {
 }
 
 async function removeRule(rule) {
-  const rules = await getRules()
-  const i = rules.indexOf(rule)
+  let rules = await getRules()
+  let i = rules.indexOf(rule)
   if (i >= 0) {
     rules.splice(i, 1)
     await browser.storage.sync.set({rules})
