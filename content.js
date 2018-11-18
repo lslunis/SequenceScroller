@@ -139,6 +139,7 @@ addEventListener('keydown', e => {
 })
 
 updateRegion()
+addEventListener('load', updateRegion)
 
 let port = chrome.runtime.connect(
   null,
