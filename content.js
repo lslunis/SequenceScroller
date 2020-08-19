@@ -13,7 +13,10 @@ function updateRegion() {
   let bottom = html.scrollHeight - clientHeight
   // Instead of comparing exactly, we check < 1 to accomodate subpixel scrolling
   allowedDirections = new Set(
-    [[top, backward], [bottom, forward]]
+    [
+      [top, backward],
+      [bottom, forward],
+    ]
       .filter(([y]) => Math.abs(y - pageYOffset) < 1)
       .map(([_, d]) => d),
   )
@@ -40,7 +43,7 @@ function scrollOrNavigate(direction) {
 function parsePathRule(pathRule) {
   let valid = true
   let padding
-  pathRule = pathRule.replace(/#+/g, s => {
+  pathRule = pathRule.replace(/#+/g, (s) => {
     if (padding) {
       console.log(`ignoring rule with multiple page placeholders: ${pathRule}`)
       valid = false
@@ -71,9 +74,18 @@ function applyRules(rules) {
       /(.*)\{([^,]+),([^}]+)\}(.*)/,
       ([prefix, prev, next, suffix]) => {
         let addUrls = (urls, infix) => {
-          let nodes = document.querySelectorAll(prefix + infix + suffix)
-          for (let node of nodes) {
-            urls.add(node.href)
+          let query = prefix + infix + suffix
+          let add = (node) => urls.add(node.href)
+          if (query.startsWith('//')) {
+            let result = document.evaluate(query, document)
+            for (let node; (node = result.iterateNext()); ) {
+              add(node)
+            }
+          } else {
+            let nodes = document.querySelectorAll(query)
+            for (let node of nodes) {
+              add(node)
+            }
           }
         }
         addUrls(prevUrls, prev)
@@ -133,7 +145,7 @@ function applyRules(rules) {
 
 addEventListener('scroll', updateRegion, {passive: true})
 
-addEventListener('keydown', e => {
+addEventListener('keydown', (e) => {
   let key = e.which
   let [pageUp = 33, pageDown = 34] = []
   if (key == pageUp) {
@@ -146,8 +158,5 @@ addEventListener('keydown', e => {
 updateRegion()
 addEventListener('load', updateRegion)
 
-let port = chrome.runtime.connect(
-  null,
-  {name: '' + Math.random()},
-)
+let port = chrome.runtime.connect(null, {name: '' + Math.random()})
 port.onMessage.addListener(applyRules)

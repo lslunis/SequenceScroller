@@ -3,8 +3,10 @@ async function getRules() {
   return rules
 }
 
+let setRules = (rules) => browser.storage.sync.set({rules})
+
 let ports = new Map()
-browser.runtime.onConnect.addListener(async port => {
+browser.runtime.onConnect.addListener(async (port) => {
   ports.set(port.name, port)
   port.onDisconnect.addListener(() => ports.delete(port.name))
 
@@ -21,11 +23,7 @@ browser.storage.onChanged.addListener(({rules}, area) => {
   }
 })
 
-async function listRules() {
-  let rules = await getRules()
-  console.log('rules:')
-  console.log(rules.map(r => JSON.stringify(r)).join('\n'))
-}
+let listRules = async () => console.log(JSON.stringify(await getRules(), null, 2))
 
 async function addRule(rule) {
   rule = rule.replace(/^(?:https?:\/\/)?(?:www\d*\.)?/, '')
@@ -34,7 +32,7 @@ async function addRule(rule) {
     console.log('rule already exists')
   } else {
     rules.push(rule)
-    await browser.storage.sync.set({rules})
+    await setRules(rules)
   }
   listRules()
 }
@@ -44,14 +42,14 @@ async function removeRule(rule) {
   let i = rules.indexOf(rule)
   if (i >= 0) {
     rules.splice(i, 1)
-    await browser.storage.sync.set({rules})
+    await setRules(rules)
   } else {
     console.log('rule not found')
   }
   listRules()
 }
 
-;[listRules, addRule, removeRule].map(f => {
+;[listRules, setRules, addRule, removeRule].map((f) => {
   window[f.name] = (...args) => {
     f(...args)
   }

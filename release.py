@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from collections import OrderedDict
 from itertools import zip_longest
@@ -13,7 +13,7 @@ from zipfile import ZipFile
 def sh(command, v=False):
     if v:
         print(command)
-    return check_output(command, text=True).strip()
+    return check_output(command.split(), text=True).strip()
 
 
 def parse_version(v):
